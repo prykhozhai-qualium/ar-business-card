@@ -1,25 +1,6 @@
 <template>
   <div id="app">
-    <div id="control">
-      <button
-        class="button"
-        :class="{
-          button_hidden: scene_active,
-        }"
-        ref="StartButton"
-      >
-        Start
-      </button>
-      <button
-        :class="{
-          button_hidden: !scene_active,
-        }"
-        class="button"
-        ref="StopButton"
-      >
-        Stop
-      </button>
-    </div>
+    <a href="assets/contact.vcf" download ref="contact"></a>
     <div id="container"></div>
     <div
       class="image-container"
@@ -124,22 +105,12 @@ export default {
         });
       };
 
-      const startButton = this.$refs.StartButton;
-      const stopButton = this.$refs.StopButton;
-
-      startButton.addEventListener("click", () => {
-        start();
-        this.scene_active = true;
-      });
-
-      stopButton.addEventListener("click", () => {
-        mindarThree.stop();
-        mindarThree.renderer.setAnimationLoop(null);
-        this.scene_active = false;
-      });
+      start();
+      this.scene_active = true;
     },
   },
   mounted() {
+    this.$refs.contact.click();
     this.setUpScene();
     this.setUpLight(this.scene_anchor);
     this.loadModel("./assets/Object.gltf", (gltf) => {
