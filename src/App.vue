@@ -1,11 +1,39 @@
 <template>
   <div id="app">
     <div id="control">
-      <button class="button" ref="StartButton">Start</button>
-      <button class="button" ref="StopButton">Stop</button>
+      <button
+        class="button"
+        :class="{
+          button_hidden: scene_active,
+        }"
+        ref="StartButton"
+      >
+        Start
+      </button>
+      <button
+        :class="{
+          button_hidden: !scene_active,
+        }"
+        class="button"
+        ref="StopButton"
+      >
+        Stop
+      </button>
     </div>
     <div id="container"></div>
-    <div class="image-container">
+    <div
+      class="image-container"
+      :class="{
+        'image-container_active': image_container.active,
+      }"
+    >
+      <button
+        class="image-container__toggle button"
+        @click="image_container.active = !image_container.active"
+      >
+        <template v-if="image_container.active"> Close </template>
+        <template v-else> GetQR </template>
+      </button>
       <img class="image-container__image" src="assets/target.jpg" alt="" />
     </div>
   </div>
@@ -23,6 +51,10 @@ export default {
     main_ancor: null,
     scene_anchor: null,
     frame_callbacks_stack: [],
+    image_container: {
+      active: false,
+    },
+    scene_active: false,
   }),
   components: {},
   methods: {
@@ -97,11 +129,13 @@ export default {
 
       startButton.addEventListener("click", () => {
         start();
+        this.scene_active = true;
       });
 
       stopButton.addEventListener("click", () => {
         mindarThree.stop();
         mindarThree.renderer.setAnimationLoop(null);
+        this.scene_active = false;
       });
     },
   },
@@ -122,23 +156,45 @@ body {
   margin: 0;
 }
 #container {
-  width: calc(100vw - 400px);
+  width: 100vw;
   height: 100vh;
   position: relative;
   overflow: hidden;
   float: right;
 }
 .image-container {
-  width: 400px;
+  width: 300px;
   height: 100vh;
   float: left;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: absolute;
+  left: -300px;
+  z-index: 1000;
+  box-shadow: 0 0 32px rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+  transition: 0.5s;
+}
+
+.image-container_active {
+  left: 0px;
+}
+
+.image-container_active .image-container__toggle {
+  right: 0;
 }
 
 .image-container__image {
   width: 250px;
+  overflow: hidden;
+  border-radius: 30px;
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.2);
+}
+.image-container__toggle {
+  position: absolute;
+  top: 0;
+  right: -100px;
 }
 #control {
   position: fixed;
@@ -161,5 +217,9 @@ button {
   font-weight: bold;
   padding: 8px 20px;
   margin: 4px 4px 16px 4px;
+}
+
+.button_hidden {
+  display: none;
 }
 </style>
