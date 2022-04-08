@@ -104,7 +104,7 @@ export default {
     setUpScene() {
       const mindarThree = new window.MINDAR.IMAGE.MindARThree({
         container: document.querySelector("#container"),
-        imageTargetSrc: "./assets/targets_min.mind",
+        imageTargetSrc: "./assets/targets_smallest.mind",
       });
 
       const { renderer, scene, camera } = mindarThree;
