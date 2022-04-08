@@ -102,6 +102,7 @@ body {
   float: left;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .image-container__image {
