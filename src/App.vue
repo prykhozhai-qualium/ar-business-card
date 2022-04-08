@@ -19,8 +19,21 @@ const loader = new GLTFLoader();
 
 export default {
   name: "App",
+  data: () => ({
+    main_ancor: null,
+    scene_anchor: null,
+    frame_callbacks_stack: [],
+  }),
   components: {},
   methods: {
+    addFrameCallback(cb) {
+      this.frame_callbacks_stack.push(cb);
+    },
+    smoothMatrixChange(Matrix_1, Matrix_2) {
+      return Matrix_2.map((i, k) => {
+        return Matrix_1[k] + (i - Matrix_1[k]) / 20;
+      });
+    },
     loadModel(path, cb) {
       loader.load(
         path,
@@ -40,6 +53,22 @@ export default {
       light.position.set(-40, -120, -40);
       anchor.group.add(light);
     },
+    countAnchors() {
+      if (!this.scene_anchor || !this.main_ancor) {
+        return;
+      }
+
+      this.scene_anchor.visible = this.main_ancor.visible;
+      this.scene_anchor.group.visible = this.main_ancor.group.visible;
+
+      let scene_anchor_matrix = this.scene_anchor.group.matrix;
+      let main_anchor_matrix = this.main_ancor.group.matrix;
+
+      scene_anchor_matrix.elements = this.smoothMatrixChange(
+        scene_anchor_matrix.elements,
+        main_anchor_matrix.elements
+      );
+    },
     setUpScene() {
       const mindarThree = new window.MINDAR.IMAGE.MindARThree({
         container: document.querySelector("#container"),
@@ -48,12 +77,17 @@ export default {
 
       const { renderer, scene, camera } = mindarThree;
 
-      const anchor = mindarThree.addAnchor(0);
+      this.main_ancor = mindarThree.addAnchor(0);
+      this.scene_anchor = mindarThree.addAnchor(1);
+
+      this.addFrameCallback(this.countAnchors);
 
       const start = async () => {
         await mindarThree.start();
 
         renderer.setAnimationLoop(() => {
+          this.frame_callbacks_stack.forEach((cb) => cb());
+
           renderer.render(scene, camera);
         });
       };
@@ -69,17 +103,15 @@ export default {
         mindarThree.stop();
         mindarThree.renderer.setAnimationLoop(null);
       });
-
-      return anchor;
     },
   },
   mounted() {
-    let anchor = this.setUpScene();
-    this.setUpLight(anchor);
+    this.setUpScene();
+    this.setUpLight(this.scene_anchor);
     this.loadModel("./assets/Object.gltf", (gltf) => {
       let model = gltf.scene;
       model.scale.set(0.5, 0.5, 0.5);
-      anchor.group.add(model);
+      this.scene_anchor.group.add(model);
     });
   },
 };
