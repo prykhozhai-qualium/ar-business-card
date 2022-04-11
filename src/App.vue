@@ -82,7 +82,7 @@ export default {
         main_anchor_matrix.elements
       );
     },
-    setUpScene() {
+    async setUpScene() {
       const mindarThree = new window.MINDAR.IMAGE.MindARThree({
         container: document.querySelector("#container"),
         imageTargetSrc: "./assets/targets_smallest.mind",
@@ -95,17 +95,14 @@ export default {
 
       this.addFrameCallback(this.countAnchors);
 
-      const start = async () => {
-        await mindarThree.start();
+      await mindarThree.start();
 
-        renderer.setAnimationLoop(() => {
-          this.frame_callbacks_stack.forEach((cb) => cb());
+      renderer.setAnimationLoop(() => {
+        this.frame_callbacks_stack.forEach((cb) => cb());
 
-          renderer.render(scene, camera);
-        });
-      };
+        renderer.render(scene, camera);
+      });
 
-      start();
       this.scene_active = true;
     },
   },
