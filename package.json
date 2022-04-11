@@ -12,7 +12,8 @@
     "mind-ar": "^1.1.4",
     "three": "^0.139.2",
     "three-gltf-loader": "^1.111.0",
-    "vue": "^2.6.11"
+    "vue": "^2.6.11",
+    "vuex": "^4.0.2"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.13",

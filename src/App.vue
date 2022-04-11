@@ -29,13 +29,17 @@ const loader = new GLTFLoader();
 export default {
   name: "App",
   data: () => ({
-    main_ancor: null,
+    target_anchor: -1,
+    anchors: [],
     scene_anchor: null,
     frame_callbacks_stack: [],
     image_container: {
       active: false,
     },
-    scene_active: false,
+    options: {
+      target: "./assets/targets.mind",
+      targets_count: 2,
+    },
   }),
   components: {},
   methods: {
@@ -47,74 +51,97 @@ export default {
         return Matrix_1[k] + (i - Matrix_1[k]) / 5;
       });
     },
-    loadModel(path, cb) {
-      loader.load(
-        path,
-        function (gltf) {
-          cb(gltf);
-        },
-        function (xhr) {
-          console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-        },
-        function (error) {
-          console.log("An error happened", error, path);
-        }
-      );
+    async loadModel(path) {
+      return await loader.loadAsync(path);
     },
     setUpLight(anchor) {
       const light = new THREE.PointLight(0x404040);
       light.position.set(-40, -120, -40);
       anchor.group.add(light);
     },
+    getTargetAnchor() {
+      let target_anchor;
+      let index;
+
+      this.anchors.forEach((anchor, i) => {
+        if (anchor.visible == true) {
+          target_anchor = anchor;
+          index = i;
+        }
+      });
+
+      return {
+        anchor: target_anchor,
+        index,
+      };
+    },
     countAnchors() {
-      if (!this.scene_anchor || !this.main_ancor) {
+      if (!this.scene_anchor || !Boolean(this.getTargetAnchor().anchor)) {
+        this.target_anchor = -1;
+        this.scene_anchor.visible = false;
+        this.scene_anchor.group.visible = false;
         return;
       }
 
-      this.scene_anchor.visible = this.main_ancor.visible;
-      this.scene_anchor.group.visible = this.main_ancor.group.visible;
+      this.target_anchor = this.getTargetAnchor().index;
+      this.scene_anchor.visible = true;
+      this.scene_anchor.group.visible = true;
 
       let scene_anchor_matrix = this.scene_anchor.group.matrix;
-      let main_anchor_matrix = this.main_ancor.group.matrix;
+      let target_anchor_matrix = this.getTargetAnchor().anchor.group.matrix;
 
       scene_anchor_matrix.elements = this.smoothMatrixChange(
         scene_anchor_matrix.elements,
-        main_anchor_matrix.elements
+        target_anchor_matrix.elements
       );
     },
-    async setUpScene() {
+    setUpScene() {
       const mindarThree = new window.MINDAR.IMAGE.MindARThree({
         container: document.querySelector("#container"),
-        imageTargetSrc: "./assets/targets_smallest.mind",
+        imageTargetSrc: this.options.target,
       });
 
       const { renderer, scene, camera } = mindarThree;
 
-      this.main_ancor = mindarThree.addAnchor(0);
-      this.scene_anchor = mindarThree.addAnchor(1);
+      let i = 0;
 
-      this.addFrameCallback(this.countAnchors);
+      for (i; i < this.options.targets_count; i++) {
+        this.anchors.push(mindarThree.addAnchor(i));
+      }
 
-      await mindarThree.start();
+      this.scene_anchor = mindarThree.addAnchor(i + 1);
 
-      renderer.setAnimationLoop(() => {
-        this.frame_callbacks_stack.forEach((cb) => cb());
+      const start = async () => {
+        await mindarThree.start();
 
-        renderer.render(scene, camera);
-      });
+        renderer.setAnimationLoop(() => {
+          this.frame_callbacks_stack.forEach((cb) => cb());
 
-      this.scene_active = true;
+          renderer.render(scene, camera);
+        });
+
+        this.addFrameCallback(this.countAnchors);
+      };
+
+      window.requestAnimationFrame(start);
+
+      this.setUpLight(this.scene_anchor);
     },
-  },
-  mounted() {
-    this.$refs.contact.click();
-    this.setUpScene();
-    this.setUpLight(this.scene_anchor);
-    this.loadModel("./assets/Object.gltf", (gltf) => {
+    loadContacts() {
+      this.$refs.contact.click();
+    },
+    setUpMainModel(gltf) {
       let model = gltf.scene;
       model.scale.set(0.5, 0.5, 0.5);
       this.scene_anchor.group.add(model);
-    });
+    },
+  },
+  async mounted() {
+    let gltf = await this.loadModel("./assets/Object.gltf");
+
+    this.loadContacts();
+    this.setUpScene();
+    this.setUpMainModel(gltf);
   },
 };
 </script>
