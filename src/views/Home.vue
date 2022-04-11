@@ -48,18 +48,25 @@ export default {
         this.contact = this.$route.params.id;
       }
     },
+    async setUp() {
+      this.getActiveContact();
+
+      this.options = await this.loadOptions();
+      let gltf = await this.loadModel(this.options.gltf);
+
+      this.$nextTick(() => {
+        this.loadContacts();
+        this.$store.dispatch("setUpScene", this.options);
+        this.setUpMainModel(gltf);
+      });
+    },
   },
   async mounted() {
-    this.getActiveContact();
-
-    this.options = await this.loadOptions();
-    let gltf = await this.loadModel(this.options.gltf);
-
-    this.$nextTick(() => {
-      this.loadContacts();
-      this.$store.dispatch("setUpScene", this.options);
-      this.setUpMainModel(gltf);
+    await navigator.mediaDevices.getUserMedia({
+      video: true,
     });
+
+    this.setUp();
   },
 };
 </script>
