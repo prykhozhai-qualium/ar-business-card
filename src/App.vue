@@ -76,7 +76,7 @@ export default {
       };
     },
     countAnchors() {
-      if (!this.scene_anchor || !Boolean(this.getTargetAnchor().anchor)) {
+      if (!this.scene_anchor || !this.getTargetAnchor().anchor) {
         this.target_anchor = -1;
         this.scene_anchor.visible = false;
         this.scene_anchor.group.visible = false;
