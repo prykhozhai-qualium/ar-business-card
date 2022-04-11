@@ -1,0 +1,5 @@
+{
+  "target": "./assets/targets.mind",
+  "targets_count": 2,
+  "contacts": ["./assets/contact.vcf"]
+}
