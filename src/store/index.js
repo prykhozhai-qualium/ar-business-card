@@ -1,6 +1,4 @@
 import "mind-ar/dist/mindar-image-three.prod.js";
-// import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-// const loader = new GLTFLoader();
 const THREE = window.MINDAR.IMAGE.THREE;
 
 import HMatrix from "@/helpers/HMatrix";
@@ -69,7 +67,7 @@ export default {
 
       let i = 0;
 
-      for (i; i < state.options.targets_count; i++) {
+      for (i; i < state.options.contacts.length; i++) {
         state.scene.anchors.push(mindarThree.addAnchor(i));
       }
 
