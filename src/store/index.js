@@ -55,7 +55,7 @@ export default {
     },
   },
   actions: {
-    setUpScene({ state, commit }, options) {
+    async setUpScene({ state, commit }, options) {
       state.options = options;
 
       const mindarThree = new window.MINDAR.IMAGE.MindARThree({

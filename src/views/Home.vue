@@ -14,6 +14,7 @@
 import "mind-ar/dist/mindar-image-three.prod.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 const loader = new GLTFLoader();
+import axios from "axios";
 
 export default {
   name: "App",
@@ -43,22 +44,35 @@ export default {
         })
       ).json();
     },
-    getActiveContact() {
-      if (this.$route.params.id) {
-        this.contact = this.$route.params.id;
-      }
-    },
     async setUp() {
-      this.getActiveContact();
 
-      this.options = await this.loadOptions();
-      let gltf = await this.loadModel(this.options.gltf);
+      let id = location.href.split("/")[location.href.split("/").length - 1];
 
-      this.$nextTick(() => {
-        this.loadContacts();
-        this.$store.dispatch("setUpScene", this.options);
-        this.setUpMainModel(gltf);
-      });
+      let response = await axios.get(
+        `https://qr.qualium-systems.com/api/v1/users/${id}/files/`,
+        {
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET,PUT,POST,DELETE,PATCH,OPTIONS",
+          },
+        }
+      );
+
+      if (response && response.data) {
+        this.options = {
+          gltf: "./assets/Object.gltf",
+          target: response.data.targetLink,
+          contacts: [response.data.vcfLink]
+        };
+
+        let gltf = await this.loadModel(this.options.gltf);
+
+        this.$nextTick(async () => {
+          this.loadContacts();
+          await this.$store.dispatch("setUpScene", this.options);
+          this.setUpMainModel(gltf);
+        });
+      }
     },
   },
   async mounted() {
